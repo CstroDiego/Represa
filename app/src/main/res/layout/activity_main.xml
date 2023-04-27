@@ -37,7 +37,7 @@
         <ListView
             android:id="@+id/listDeviceBluetooth"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"></ListView>
+            android:layout_height="match_parent"/>
 
     </LinearLayout>
 
@@ -55,7 +55,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="5dp"
             android:layout_marginEnd="5dp"
-            android:text="Device"></Button>
+            android:text="DISPOSITIVOS"/>
 
         <Button
             android:id="@+id/btnInitStop"
@@ -63,15 +63,15 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="5dp"
             android:layout_marginEnd="5dp"
-            android:text="START"></Button>
+            android:text="INICIAR"/>
 
         <TextView
             android:id="@+id/txtPot"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Potenciometro"
+            android:text="Humedad"
             android:textAlignment="center"
-            android:textColor="#039BE5"></TextView>
+            android:textColor="#039BE5"/>
 
         <TextView
             android:id="@+id/txtTemp"
@@ -80,7 +80,7 @@
             android:layout_marginTop="10dp"
             android:text="Temperatura"
             android:textAlignment="center"
-            android:textColor="#E53935"></TextView>
+            android:textColor="#E53935"/>
 
 
     </LinearLayout>
