@@ -48,6 +48,8 @@ dependencies {
     // Permite la conexión entre android y arduino
     implementation 'com.github.jose-jhr:blueJhrLibrary:0.1.0'
 
+    // Permite la desealización de JSON
+    implementation 'com.google.code.gson:gson:2.8.8'
 
     implementation 'androidx.core:core-ktx:1.8.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'

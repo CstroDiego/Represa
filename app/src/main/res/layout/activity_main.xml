@@ -64,21 +64,21 @@
             android:layout_marginStart="5dp"
             android:layout_marginEnd="5dp"
             android:text="INICIAR"/>
-
-        <TextView
-            android:id="@+id/txtPot"
+        <Button
+            android:id="@+id/btnDisconnect"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Humedad"
-            android:textAlignment="center"
-            android:textColor="#039BE5"/>
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="5dp"
+            android:text="DESCONECTAR"
+            android:visibility="gone" />
 
         <TextView
-            android:id="@+id/txtTemp"
+            android:id="@+id/txtSen"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:text="Temperatura"
+            android:text=""
             android:textAlignment="center"
             android:textColor="#E53935"/>
 

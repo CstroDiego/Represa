@@ -3,6 +3,7 @@ package mx.itson.represa
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Toast
@@ -12,6 +13,10 @@ import com.ingenieriajhr.blujhr.BluJhr
 import com.jjoe64.graphview.series.DataPoint
 import com.jjoe64.graphview.series.LineGraphSeries
 import mx.itson.represa.databinding.ActivityMainBinding
+import org.json.JSONException
+import org.json.JSONObject
+import java.util.Timer
+import java.util.TimerTask
 
 
 class MainActivity : AppCompatActivity() {
@@ -23,7 +28,7 @@ class MainActivity : AppCompatActivity() {
     var graphviewVisible = true
 
     //graphviewSeries
-    lateinit var temperatura: LineGraphSeries<DataPoint?>
+    lateinit var sensor: LineGraphSeries<DataPoint?>
     lateinit var humedad: LineGraphSeries<DataPoint>
 
     //nos indica si estamos recibiendo datos o no
@@ -44,6 +49,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val REQUEST_ENABLE_BLUETOOTH = 1
 
+    private var timer: Timer? = null
+    private var timerTask: TimerTask? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -51,10 +59,10 @@ class MainActivity : AppCompatActivity() {
         val view = binding.root
         setContentView(view)
 
-        //graphview
+        // graphview
         initGraph()
 
-        //init var sweetAlert
+        // init var sweetAlert
         initSweet()
 
         blue = BluJhr(this)
@@ -69,6 +77,11 @@ class MainActivity : AppCompatActivity() {
                 false -> invisibleListDevice()
                 true -> visibleListDevice()
             }
+            binding.btnDisconnect.setOnClickListener {
+                blue.bluTx("4")
+                blue.closeConnection()
+            }
+
         }
 
         binding.listDeviceBluetooth.setOnItemClickListener { adapterView, view, i, l ->
@@ -84,6 +97,15 @@ class MainActivity : AppCompatActivity() {
                                 okSweet.show()
                                 invisibleListDevice()
                                 rxReceived()
+                                binding.btnDisconnect.visibility = View.VISIBLE
+                                timer?.cancel()
+                                timer = Timer()
+                                timerTask = object : TimerTask() {
+                                    override fun run() {
+                                        blue.bluTx("3")
+                                    }
+                                }
+                                timer?.schedule(timerTask, 0, 1000)
                             }
 
                             BluJhr.Connected.Pending -> {
@@ -99,6 +121,9 @@ class MainActivity : AppCompatActivity() {
                                 loadSweet.dismiss()
                                 disconnection.show()
                                 visibleListDevice()
+                                binding.btnDisconnect.visibility = View.GONE
+                                timer?.cancel()
+                                timerTask?.cancel()
                             }
                         }
                     }
@@ -109,7 +134,7 @@ class MainActivity : AppCompatActivity() {
             if (stateConn == BluJhr.Connected.True) {
                 initGraph = when (initGraph) {
                     true -> {
-                        blue.bluTx("0")
+                        blue.bluTx("2")
                         binding.btnInitStop.text = "INICIAR"
                         false
                     }
@@ -124,24 +149,27 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // *********************************************************************************************
     private fun rxReceived() {
         blue.loadDateRx(object : BluJhr.ReceivedData {
             override fun rxDate(rx: String) {
-                ejeX += 0.5
-                if (rx.contains("t")) {
-                    val date = rx.replace("t", "")
-                    binding.txtTemp.text = "Temperatura: $date°C"
-                    temperatura.appendData(DataPoint(ejeX, date.toDouble()), true, 22)
-                } else {
-                    if (rx.contains("h")) {
-                        val date = rx.replace("h", "")
-                        binding.txtPot.text = "Humedad: $date%"
-                        humedad.appendData(DataPoint(ejeX, date.toDouble()), true, 22)
+                try {
+                    val jsonObject = JSONObject(rx)
+                    val dataArray = jsonObject.getJSONArray("data")
+                    //val name = jsonObject.getString("sensor")
+                    for (i in 0 until dataArray.length()) {
+                        ejeX += 1
+                        //binding.txtSen.text = name.toString()
+                        sensor.appendData(DataPoint(ejeX, dataArray.getDouble(i)), true, 400)
                     }
+                } catch (e: JSONException) {
+                    Log.e("JSON", e.toString())
+
                 }
             }
         })
     }
+    // *********************************************************************************************
 
     private fun initSweet() {
         loadSweet = SweetAlertDialog(this, SweetAlertDialog.PROGRESS_TYPE)
@@ -157,28 +185,23 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initGraph() {
-        binding.graph.viewport.isXAxisBoundsManual = true;
-        binding.graph.viewport.isYAxisBoundsManual = false;
-        binding.graph.viewport.setMinX(0.0);
-        binding.graph.viewport.setMaxX(10.0);
-        binding.graph.viewport.setMaxY(100.0)
+        binding.graph.viewport.isXAxisBoundsManual = true
+        binding.graph.viewport.isYAxisBoundsManual = false
+        binding.graph.viewport.setMinX(0.0)
+        binding.graph.viewport.setMaxX(250.0)
+        binding.graph.viewport.setMaxY(1024.0)
         binding.graph.viewport.setMinY(0.0)
 
         binding.graph.viewport.isScalable = true
         binding.graph.viewport.setScalableY(true)
 
-        temperatura = LineGraphSeries()
-        temperatura.isDrawDataPoints = true;
-        temperatura.isDrawBackground = true;
-        temperatura.color = Color.RED
+        sensor = LineGraphSeries()
+        sensor.isDrawDataPoints = true
+        sensor.isDrawBackground = true
+        sensor.color = Color.RED
 
-        humedad = LineGraphSeries()
-        humedad.isDrawDataPoints = true;
-        humedad.isDrawBackground = true;
-        humedad.color = Color.BLUE
-
-        binding.graph.addSeries(temperatura);
-        binding.graph.addSeries(humedad)
+        binding.graph.addSeries(sensor)
+        //  binding.graph.addSeries(humedad)
     }
 
     private fun invisibleListDevice() {
